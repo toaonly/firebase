@@ -1,0 +1,2 @@
+GITHUB_TOKEN=****
+-P ubuntu-latest=catthehacker/ubuntu:act-latest

@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - stg
+      - prod
+
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+#   cancel-in-progress: true
+
+jobs:
+  local-test:
+    if: ${{ github.event.act }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This is local test"
+
+  code-test:
+    if: ${{ !github.event.act }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment and install dependencies
+        uses: ./.github/composite-actions/install
+
+      - name: Run test with check coverage
+        run: |
+          yarn
+          yarn test:coverage
+
+    # - name: Upload badge.svg in coverage directory
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: coverage
+    #     path: coverage/badge.svg

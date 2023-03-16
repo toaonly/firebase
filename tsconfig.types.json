@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "baseUrl": ".",
+    "outDir": "types",
+    "emitDeclarationOnly": true,
+    "sourceMap": false,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "incremental": false
+  },
+  "exclude": ["src/**/*.spec.ts"]
+}

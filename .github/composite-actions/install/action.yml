@@ -1,0 +1,23 @@
+name: ✅ Setup Node.js environment and install dependencies
+description: "Sets up Node.js and runs install"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Install Yarn
+      uses: actions/cache@v2
+      with:
+        path: |
+          node_modules
+          packages/*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+
+    - name: Install dependencies
+      run: |
+        yarn
+      shell: bash

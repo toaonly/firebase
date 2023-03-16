@@ -1,0 +1,34 @@
+name: Build package and publish
+description: "Build package and publish"
+
+inputs:
+  auth-token:
+    description: "auth-token"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Build package
+      run: yarn build
+      shell: bash
+    
+    - name: Udpate package.json version
+      run: |
+        version=$(echo ${{ github.ref }} | cut -d "/" -f 3)
+        echo "Updating version to $version in package.json"
+        yarn update-version $version
+      shell: bash
+
+    - name: Publish to npm
+      run: |
+        tag=$(echo ${{ github.ref }} | cut -d "-" -f 2)
+        if [ $tag = "rc" ]
+        then
+          publish_tag=$(echo "latest")
+        else
+          publish_tag=$tag
+        fi
+
+        npm publish --tag $publish_tag
+      shell: bash

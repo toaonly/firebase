@@ -1,0 +1,67 @@
+name: Publish npm Package
+
+on:
+  push:
+    branches:
+      - test
+    tags:
+      - v*.*.*-*
+
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+#   cancel-in-progress: true
+
+jobs:
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - id: version
+        run: |
+          version=$(echo ${{ github.ref }} | cut -d "/" -f 3 | sed -n "/^v/p")
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+  local-test:
+    needs: [get-version]
+    if: ${{ github.event.act && needs.get-version.outputs.version != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "This is local test"
+          echo "version: ${{ needs.get-version.outputs.version }}"
+
+  code-test:
+    if: ${{ !github.event.act }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment and install dependencies
+        uses: ./.github/composite-actions/install
+
+      - name: Run test
+        run: |
+          yarn
+          yarn test
+
+  publish:
+    needs: [code-test, get-version]
+    if: ${{ needs.get-version.outputs.version != '' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment and install dependencies
+        uses: ./.github/composite-actions/install
+
+      - name: Build package and publish
+        uses: ./.github/composite-actions/publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          auth-token: ${{ secrets.GITHUB_TOKEN }}
